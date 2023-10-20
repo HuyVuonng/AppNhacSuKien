@@ -4,6 +4,7 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationCompat;
 
+import android.app.ActivityManager;
 import android.app.AlarmManager;
 import android.app.Dialog;
 import android.app.Notification;
@@ -36,6 +37,7 @@ import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
     private PendingIntent repeat_Pending;
+    Context context;
     TextView TVngayam,tvNgayconlai;
     String thuTRongTuan;
     Database database;
@@ -48,13 +50,33 @@ public class MainActivity extends AppCompatActivity {
     ArrayList<CLASSNGAYAMLICH> arrayListNgayAM;
     ArrayList<CLASSNGAYDUONGLICH> arrayListNgayDUONG;
     Button chuyendoi;
+
+//    @Override
+//    protected void onDestroy() {
+//        super.onDestroy();
+//            Intent serviceIntent = new Intent(MainActivity.this, ForegroundService.class);
+//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//                startForegroundService(serviceIntent);
+//            }
+//    }
+
     @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        if (!forceServicesRunning()){
+            Intent serviceIntent= new Intent(MainActivity.this, ForegroundService.class);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(serviceIntent);
+            }
+        }
+
         anhxa();
-        Intent intent= new Intent(this,MainActivity.class);
+
+
+
         arrayListNgayAM=new ArrayList<>();
         arrayListNgayDUONG= new ArrayList<>();
         adapterNgayDuongg = new adapterNgayDuong(this,R.layout.dongsk,arrayListNgayDUONG);
@@ -70,23 +92,8 @@ public class MainActivity extends AppCompatActivity {
         getDataNgayDuong();
         getDataNgayAm();
 
-        Calendar ngayHienTai= Calendar.getInstance();
-        ngayDuongCuahientai= ngayHienTai.get(Calendar.DATE);
-        thangDuongCuaHienTai=ngayHienTai.get(Calendar.MONTH)+1;
-        namDuongCuaHienTai=ngayHienTai.get(Calendar.YEAR);
-        String ngayDuongCuahientaiString= Integer.toString(ngayDuongCuahientai);
-        String thangDuongCuaHienTaiString= Integer.toString(thangDuongCuaHienTai);
 
 
-        ChineseCalendar ngayam = new ChineseCalendar(ngayHienTai.getTime());
-        ngayAmCuaHienTai=ngayam.get(ChineseCalendar.DATE);
-        thangAmCuaHienTai=ngayam.get(ChineseCalendar.MONTH)+1;
-        namAmCuaHienTai=ngayam.get(Calendar.YEAR);
-        String ngayAmCuaHienTaiString= Integer.toString(ngayAmCuaHienTai);
-        String thangAmCuaHienTaiString= Integer.toString(thangAmCuaHienTai);
-
-        tinhngaysapdenLichAm();
-        tinhngaysapdenLichDuong();
 
         add.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -137,45 +144,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        //ĐK reciver nhận thông báo
-        Intent reciver=new Intent(this,LoopReciver.class);
-        repeat_Pending=PendingIntent.getBroadcast(this,0,reciver,0);
 
-        Loop();
-//        TVngayam.setText("Ngày"+ngayDuongCuahientaiString+"Tháng"+thangDuongCuaHienTaiString);
-//        tvNgayconlai.setText("Ngày"+ngayAmCuaHienTaiString+"Tháng"+thangAmCuaHienTaiString);
-//
-
-//        chuyendoi.setOnClickListener(new View.OnClickListener() {
-//            @RequiresApi(api = Build.VERSION_CODES.N)
-//            @Override
-//            public void onClick(View view) {
-//                String ngay= ngayNhap.getText().toString();
-//                Date dateNhap= null, ngayhomnay=null;
-//                try {
-//                    ngayhomnay= new SimpleDateFormat("dd/MM/yyyy").parse(String.valueOf(ngayHienTai.getTime()));
-//                } catch (ParseException e) {
-//                    e.printStackTrace();
-//                }
-//
-//                try {
-//                    dateNhap = new SimpleDateFormat("dd/MM/yyyy").parse(ngay);
-//                } catch (ParseException e) {
-//                    e.printStackTrace();
-//                }
-//                ChineseCalendar ngayam = new ChineseCalendar(dateNhap);
-//
-//                Calendar ngayNhapVao= Calendar.getInstance();
-//                String DateNhapString= dateNhap.toString();
-//                String datenhapsplit[]=ngay.split("\\/");
-//                ngayNhapVao.set(Integer.parseInt(datenhapsplit[2]),Integer.parseInt(datenhapsplit[1]),Integer.parseInt(datenhapsplit[0]));
-//                int ngayconlai= (int) ((ngayHienTai.getTimeInMillis()-ngayNhapVao.getTimeInMillis())/(1000*60*60*24));
-//                int thangnhan=ngayam.get(ChineseCalendar.MONTH);
-//                int thangam=thangnhan+1;
-//                TVngayam.setText("Ngày"+ngayam.get(ChineseCalendar.DATE)+"Tháng"+thangam);
-//                tvNgayconlai.setText("còn lại: "+ngayconlai);
-//            }
-//        });
     }
 
     private void getDataNgayAm() {
@@ -208,159 +177,15 @@ public class MainActivity extends AppCompatActivity {
         ngayAMLv=findViewById(R.id.lvNgayAm);
     }
 
-    public  void tinhngaysapdenLichDuong(){
-        Calendar ngayDuongdienraSk= Calendar.getInstance();
-        int ngayduongconlaidensk=0;
-
-        Calendar ngayLichDuonghientai=Calendar.getInstance();
-        ngayLichDuonghientai.set(namDuongCuaHienTai,thangDuongCuaHienTai-1,ngayDuongCuahientai);
-        for (int i=0;i<arrayListNgayDUONG.size();i++){
-            String catngayduong[]=arrayListNgayDUONG.get(i).getNgayDuong().split("\\/");
-            ngayDuongdienraSk.set(namDuongCuaHienTai,Integer.parseInt(catngayduong[1])-1,Integer.parseInt(catngayduong[0]));
-            ngayduongconlaidensk= (int) ((ngayDuongdienraSk.getTimeInMillis()-ngayLichDuonghientai.getTimeInMillis())/(1000*60*60*24));
-
-            switch (ngayDuongdienraSk.get(Calendar.DAY_OF_WEEK)){
-                case 1: thuTRongTuan="Chủ nhật";
-                    break;
-                case 2:   thuTRongTuan="Thứ hai";
-                    break;
-                case 3:   thuTRongTuan="Thứ ba";
-                    break;
-                case 4:   thuTRongTuan="Thứ tư";
-                    break;
-                case 5:   thuTRongTuan="Thứ năm";
-                    break;
-                case 6:   thuTRongTuan="Thứ sáu";
-                    break;
-                case 7:   thuTRongTuan="Thứ bảy";
-                    break;
-            }
 
 
-
-            if(ngayduongconlaidensk==5){
-                Bitmap bitmap= BitmapFactory.decodeResource(getResources(),R.mipmap.ic_launcherevent);
-                Notification notificationA=new NotificationCompat.Builder(MainActivity.this,MyApplication.CHANNEL_ID)
-                        .setContentTitle("Nhắc nhở")
-                        .setContentText("Còn 5 ngày nữa đến"+arrayListNgayDUONG.get(i).tenSk+" vào: "+thuTRongTuan)
-                        .setSmallIcon(R.mipmap.ic_launcherevent)
-                        .setLargeIcon(bitmap)
-                        .build();
-                NotificationManager notificationManager= (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-                if(notificationManager != null){
-                    notificationManager.notify(getNotificationid(),notificationA);
-                }
-            }
-            else if(ngayduongconlaidensk==3){
-                Bitmap bitmap= BitmapFactory.decodeResource(getResources(),R.mipmap.ic_launcherevent);
-                Notification notification= new NotificationCompat.Builder(MainActivity.this,MyApplication.CHANNEL_ID)
-                        .setContentTitle("Nhắc nhở")
-                        .setContentText("Còn 3 ngày nữa đến "+arrayListNgayDUONG.get(i).tenSk+" vào: "+thuTRongTuan)
-                        .setSmallIcon(R.mipmap.ic_launcherevent)
-                        .setLargeIcon(bitmap)
-                        .build();
-                NotificationManager notificationManager= (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-                if(notificationManager != null){
-                    notificationManager.notify(getNotificationid(),notification);
-                }
-            }
-            else if(ngayduongconlaidensk==1){
-                Bitmap bitmap= BitmapFactory.decodeResource(getResources(),R.mipmap.ic_launcherevent);
-                Notification notification= new NotificationCompat.Builder(MainActivity.this,MyApplication.CHANNEL_ID)
-                        .setContentTitle("Nhắc nhở")
-                        .setContentText("Còn 1 ngày nữa đến "+arrayListNgayDUONG.get(i).tenSk+" vào : "+thuTRongTuan.toString())
-                        .setSmallIcon(R.mipmap.ic_launcherevent)
-                        .setLargeIcon(bitmap)
-                        .build();
-                NotificationManager notificationManager= (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-                if(notificationManager != null){
-                    notificationManager.notify(getNotificationid(),notification);
-                }
+    public boolean forceServicesRunning(){
+        ActivityManager activityManager= (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for(ActivityManager.RunningServiceInfo service: activityManager.getRunningServices(Integer.MAX_VALUE)){
+            if(ForegroundService.class.getName().equals(service.service.getClassName())){
+                return true;
             }
         }
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.N)
-    public void tinhngaysapdenLichAm(){
-        ChineseCalendar ngayAmdienraSk= new ChineseCalendar();
-        int ngayconlaidensk=0;
-        Calendar ngayHienTai= Calendar.getInstance();
-
-        ChineseCalendar ngayamLichHienTai = new ChineseCalendar(ngayHienTai.getTime());
-        for (int i=0;i<arrayListNgayAM.size();i++){
-            String catngayam[]=arrayListNgayAM.get(i).getNgayAm().split("\\/");
-            ngayAmdienraSk.set(namAmCuaHienTai,Integer.parseInt(catngayam[1])-1,Integer.parseInt(catngayam[0]));
-            ngayconlaidensk= (int) ((ngayAmdienraSk.getTimeInMillis()-ngayamLichHienTai.getTimeInMillis())/(1000*60*60*24));
-
-            switch (ngayAmdienraSk.get(Calendar.DAY_OF_WEEK)){
-                case 1: thuTRongTuan="Chủ nhật";
-                         break;
-                case 2:   thuTRongTuan="Thứ hai";
-                    break;
-                case 3:   thuTRongTuan="Thứ ba";
-                    break;
-                case 4:   thuTRongTuan="Thứ tư";
-                    break;
-                case 5:   thuTRongTuan="Thứ năm";
-                    break;
-                case 6:   thuTRongTuan="Thứ sáu";
-                    break;
-                case 7:   thuTRongTuan="Thứ bảy";
-                    break;
-            }
-
-
-            if(ngayconlaidensk==5){
-                Bitmap bitmap= BitmapFactory.decodeResource(getResources(),R.mipmap.ic_launcherevent);
-                Notification notificationA=new NotificationCompat.Builder(MainActivity.this,MyApplication.CHANNEL_ID)
-                        .setContentTitle("Nhắc nhở")
-                        .setContentText("Còn 5 ngày nữa đến"+arrayListNgayAM.get(i).tenSk+" vào : "+thuTRongTuan.toString())
-                        .setSmallIcon(R.mipmap.ic_launcherevent)
-                        .setLargeIcon(bitmap)
-                        .build();
-                NotificationManager notificationManager= (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-                if(notificationManager != null){
-                    notificationManager.notify(getNotificationid(),notificationA);
-                }
-            }
-            else if(ngayconlaidensk==3){
-                Bitmap bitmap= BitmapFactory.decodeResource(getResources(),R.mipmap.ic_launcherevent);
-                Notification notification= new NotificationCompat.Builder(MainActivity.this,MyApplication.CHANNEL_ID)
-                        .setContentTitle("Nhắc nhở")
-                        .setContentText("Còn 3 ngày nữa đến "+arrayListNgayAM.get(i).tenSk+" vào : "+thuTRongTuan.toString())
-                        .setSmallIcon(R.mipmap.ic_launcherevent)
-                        .setLargeIcon(bitmap)
-                        .build();
-                NotificationManager notificationManager= (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-                if(notificationManager != null){
-                    notificationManager.notify(getNotificationid(),notification);
-                }
-            }
-            else if(ngayconlaidensk==1){
-                Bitmap bitmap= BitmapFactory.decodeResource(getResources(),R.mipmap.ic_launcherevent);
-                Notification notification= new NotificationCompat.Builder(MainActivity.this,MyApplication.CHANNEL_ID)
-                        .setContentTitle("Nhắc nhở")
-                        .setContentText("Còn 1 ngày nữa đến "+arrayListNgayAM.get(i).tenSk+" vào : "+thuTRongTuan.toString())
-                        .setSmallIcon(R.mipmap.ic_launcherevent)
-                        .setLargeIcon(bitmap)
-                        .build();
-                NotificationManager notificationManager= (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-                if(notificationManager != null){
-                    notificationManager.notify(getNotificationid(),notification);
-                }
-            }
-        }
-    }
-    private int getNotificationid(){
-        return (int) new Date().getTime();
-    }
-
-    private void Loop(){
-        AlarmManager manager= (AlarmManager) getSystemService(ALARM_SERVICE);
-        Calendar cal= Calendar.getInstance();
-        cal.set(Calendar.MINUTE,10);
-        cal.set(Calendar.HOUR_OF_DAY,20);
-        manager.setInexactRepeating(AlarmManager.RTC_WAKEUP,cal.getTimeInMillis(),AlarmManager.INTERVAL_DAY,repeat_Pending);
-        Toast.makeText(this, "Đã thiết lập", Toast.LENGTH_SHORT).show();
-    }
+        return false;
+    };
 }
