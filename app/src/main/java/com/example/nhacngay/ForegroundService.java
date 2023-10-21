@@ -6,6 +6,7 @@ import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -48,6 +49,12 @@ public class ForegroundService extends Service {
                         while (true) {
                             Log.e("Services", "service is running...");
 
+                           
+                            SharedPreferences sharedPreferences = getSharedPreferences("data", MODE_PRIVATE);
+                            Integer date = sharedPreferences.getInt("date", 0);
+                            Integer month = sharedPreferences.getInt("month", 0);
+
+
                             database = new Database(ForegroundService.this, "QuanLySK.sqlite", null, 1);
                             arrayListNgayDUONG = new ArrayList<>();
                             arrayListNgayAM = new ArrayList<>();
@@ -72,31 +79,114 @@ public class ForegroundService extends Service {
                             thangDuongCuaHienTai = ngayHienTai.get(Calendar.MONTH) + 1;
                             namDuongCuaHienTai = ngayHienTai.get(Calendar.YEAR);
 
-                            ChineseCalendar ngayam = null;
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                                ngayam = new ChineseCalendar(ngayHienTai.getTime());
-                            }
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                                ngayAmCuaHienTai = ngayam.get(ChineseCalendar.DATE);
-                            }
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                                thangAmCuaHienTai = ngayam.get(ChineseCalendar.MONTH) + 1;
-                            }
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                                namAmCuaHienTai = ngayam.get(Calendar.YEAR);
-                            }
+                            if (date != ngayDuongCuahientai && month != thangDuongCuaHienTai) {
+                                SharedPreferences.Editor editor = getSharedPreferences("data", Context.MODE_PRIVATE).edit();
 
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                                ChineseCalendar ngayAmdienraSk = new ChineseCalendar();
-                                int ngayconlaidensk = 0;
+                                ChineseCalendar ngayam = null;
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                                    ngayam = new ChineseCalendar(ngayHienTai.getTime());
+                                }
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                                    ngayAmCuaHienTai = ngayam.get(ChineseCalendar.DATE);
+                                }
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                                    thangAmCuaHienTai = ngayam.get(ChineseCalendar.MONTH) + 1;
+                                }
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                                    namAmCuaHienTai = ngayam.get(Calendar.YEAR);
+                                }
 
-                                ChineseCalendar ngayamLichHienTai = new ChineseCalendar(ngayHienTai.getTime());
-                                for (int i = 0; i < arrayListNgayAM.size(); i++) {
-                                    String catngayam[] = arrayListNgayAM.get(i).getNgayAm().split("\\/");
-                                    ngayAmdienraSk.set(namAmCuaHienTai, Integer.parseInt(catngayam[1]) - 1, Integer.parseInt(catngayam[0]));
-                                    ngayconlaidensk = (int) ((ngayAmdienraSk.getTimeInMillis() - ngayamLichHienTai.getTimeInMillis()) / (1000 * 60 * 60 * 24));
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                                    ChineseCalendar ngayAmdienraSk = new ChineseCalendar();
+                                    int ngayconlaidensk = 0;
 
-                                    switch (ngayAmdienraSk.get(Calendar.DAY_OF_WEEK)) {
+                                    ChineseCalendar ngayamLichHienTai = new ChineseCalendar(ngayHienTai.getTime());
+                                    for (int i = 0; i < arrayListNgayAM.size(); i++) {
+                                        String catngayam[] = arrayListNgayAM.get(i).getNgayAm().split("\\/");
+                                        ngayAmdienraSk.set(namAmCuaHienTai, Integer.parseInt(catngayam[1]) - 1, Integer.parseInt(catngayam[0]));
+                                        ngayconlaidensk = (int) ((ngayAmdienraSk.getTimeInMillis() - ngayamLichHienTai.getTimeInMillis()) / (1000 * 60 * 60 * 24));
+
+                                        switch (ngayAmdienraSk.get(Calendar.DAY_OF_WEEK)) {
+                                            case 1:
+                                                thuTRongTuan = "Chủ nhật";
+                                                break;
+                                            case 2:
+                                                thuTRongTuan = "Thứ hai";
+                                                break;
+                                            case 3:
+                                                thuTRongTuan = "Thứ ba";
+                                                break;
+                                            case 4:
+                                                thuTRongTuan = "Thứ tư";
+                                                break;
+                                            case 5:
+                                                thuTRongTuan = "Thứ năm";
+                                                break;
+                                            case 6:
+                                                thuTRongTuan = "Thứ sáu";
+                                                break;
+                                            case 7:
+                                                thuTRongTuan = "Thứ bảy";
+                                                break;
+                                        }
+
+
+                                        if (ngayconlaidensk == 7) {
+                                            Bitmap bitmap = BitmapFactory.decodeResource(ForegroundService.this.getResources(), R.mipmap.ic_launcherevent);
+                                            Notification notification = new NotificationCompat.Builder(ForegroundService.this, NotificationChannelCreate.CHANNEL_ID)
+                                                    .setContentTitle("Nhắc nhở")
+                                                    .setContentText("Còn 7 ngày nữa đến " + arrayListNgayAM.get(i).tenSk + " vào : " + thuTRongTuan.toString())
+                                                    .setSmallIcon(R.mipmap.ic_launcherevent)
+                                                    .setLargeIcon(bitmap)
+                                                    .build();
+                                            NotificationManager notificationManager = (NotificationManager) ForegroundService.this.getSystemService(Context.NOTIFICATION_SERVICE);
+                                            if (notificationManager != null) {
+                                                notificationManager.notify((int) new Date().getTime(), notification);
+                                            }
+                                            editor.putInt("date", ngayDuongCuahientai);
+                                            editor.putInt("month", thangDuongCuaHienTai);
+                                            editor.apply();
+                                        } else if (ngayconlaidensk == 3) {
+                                            Bitmap bitmap = BitmapFactory.decodeResource(ForegroundService.this.getResources(), R.mipmap.ic_launcherevent);
+                                            Notification notification = new NotificationCompat.Builder(ForegroundService.this, NotificationChannelCreate.CHANNEL_ID)
+                                                    .setContentTitle("Nhắc nhở")
+                                                    .setContentText("Còn 3 ngày nữa đến " + arrayListNgayAM.get(i).tenSk + " vào : " + thuTRongTuan.toString())
+                                                    .setSmallIcon(R.mipmap.ic_launcherevent)
+                                                    .setLargeIcon(bitmap)
+                                                    .build();
+                                            NotificationManager notificationManager = (NotificationManager) ForegroundService.this.getSystemService(Context.NOTIFICATION_SERVICE);
+                                            if (notificationManager != null) {
+                                                notificationManager.notify((int) new Date().getTime(), notification);
+                                            }
+                                            editor.putInt("date", ngayDuongCuahientai);
+                                            editor.putInt("month", thangDuongCuaHienTai);
+                                            editor.apply();
+                                        } else if (ngayconlaidensk == 0) {
+                                            Bitmap bitmap = BitmapFactory.decodeResource(ForegroundService.this.getResources(), R.mipmap.ic_launcherevent);
+                                            Notification notification = new NotificationCompat.Builder(ForegroundService.this, NotificationChannelCreate.CHANNEL_ID)
+                                                    .setContentTitle("Nhắc nhở")
+                                                    .setContentText("Hôm nay là " + arrayListNgayAM.get(i).tenSk)
+                                                    .setSmallIcon(R.mipmap.ic_launcherevent)
+                                                    .setLargeIcon(bitmap)
+                                                    .build();
+                                            NotificationManager notificationManager = (NotificationManager) ForegroundService.this.getSystemService(Context.NOTIFICATION_SERVICE);
+                                            if (notificationManager != null) {
+                                                notificationManager.notify((int) new Date().getTime(), notification);
+                                            }
+                                            editor.putInt("date", ngayDuongCuahientai);
+                                            editor.putInt("month", thangDuongCuaHienTai);
+                                            editor.apply();
+                                        }
+                                    }
+                                }
+                                Calendar ngayDuongdienraSk = Calendar.getInstance();
+                                int ngayduongconlaidensk = 0;
+                                ngayHienTai.set(namDuongCuaHienTai, thangDuongCuaHienTai - 1, ngayDuongCuahientai);
+                                for (int i = 0; i < arrayListNgayDUONG.size(); i++) {
+                                    String catngayduong[] = arrayListNgayDUONG.get(i).getNgayDuong().split("\\/");
+                                    ngayDuongdienraSk.set(namDuongCuaHienTai, Integer.parseInt(catngayduong[1]) - 1, Integer.parseInt(catngayduong[0]));
+                                    ngayduongconlaidensk = (int) ((ngayDuongdienraSk.getTimeInMillis() - ngayHienTai.getTimeInMillis()) / (1000 * 60 * 60 * 24));
+                                    switch (ngayDuongdienraSk.get(Calendar.DAY_OF_WEEK)) {
                                         case 1:
                                             thuTRongTuan = "Chủ nhật";
                                             break;
@@ -119,13 +209,11 @@ public class ForegroundService extends Service {
                                             thuTRongTuan = "Thứ bảy";
                                             break;
                                     }
-
-
-                                    if (ngayconlaidensk == 7) {
+                                    if (ngayduongconlaidensk == 7) {
                                         Bitmap bitmap = BitmapFactory.decodeResource(ForegroundService.this.getResources(), R.mipmap.ic_launcherevent);
                                         Notification notification = new NotificationCompat.Builder(ForegroundService.this, NotificationChannelCreate.CHANNEL_ID)
                                                 .setContentTitle("Nhắc nhở")
-                                                .setContentText("Còn 7 ngày nữa đến " + arrayListNgayAM.get(i).tenSk + " vào : " + thuTRongTuan.toString())
+                                                .setContentText("Còn 7 ngày nữa đến " + arrayListNgayDUONG.get(i).tenSk + " vào: " + thuTRongTuan)
                                                 .setSmallIcon(R.mipmap.ic_launcherevent)
                                                 .setLargeIcon(bitmap)
                                                 .build();
@@ -133,11 +221,14 @@ public class ForegroundService extends Service {
                                         if (notificationManager != null) {
                                             notificationManager.notify((int) new Date().getTime(), notification);
                                         }
-                                    } else if (ngayconlaidensk == 3) {
+                                        editor.putInt("date", ngayDuongCuahientai);
+                                        editor.putInt("month", thangDuongCuaHienTai);
+                                        editor.apply();
+                                    } else if (ngayduongconlaidensk == 3) {
                                         Bitmap bitmap = BitmapFactory.decodeResource(ForegroundService.this.getResources(), R.mipmap.ic_launcherevent);
                                         Notification notification = new NotificationCompat.Builder(ForegroundService.this, NotificationChannelCreate.CHANNEL_ID)
                                                 .setContentTitle("Nhắc nhở")
-                                                .setContentText("Còn 3 ngày nữa đến " + arrayListNgayAM.get(i).tenSk + " vào : " + thuTRongTuan.toString())
+                                                .setContentText("Còn 3 ngày nữa đến " + arrayListNgayDUONG.get(i).tenSk + " vào : " + thuTRongTuan.toString())
                                                 .setSmallIcon(R.mipmap.ic_launcherevent)
                                                 .setLargeIcon(bitmap)
                                                 .build();
@@ -145,11 +236,14 @@ public class ForegroundService extends Service {
                                         if (notificationManager != null) {
                                             notificationManager.notify((int) new Date().getTime(), notification);
                                         }
-                                    }else if (ngayconlaidensk == 0) {
+                                        editor.putInt("date", ngayDuongCuahientai);
+                                        editor.putInt("month", thangDuongCuaHienTai);
+                                        editor.apply();
+                                    } else if (ngayduongconlaidensk == 0) {
                                         Bitmap bitmap = BitmapFactory.decodeResource(ForegroundService.this.getResources(), R.mipmap.ic_launcherevent);
                                         Notification notification = new NotificationCompat.Builder(ForegroundService.this, NotificationChannelCreate.CHANNEL_ID)
                                                 .setContentTitle("Nhắc nhở")
-                                                .setContentText("Hôm nay là " + arrayListNgayAM.get(i).tenSk)
+                                                .setContentText("Hôm nay là " + arrayListNgayDUONG.get(i).tenSk)
                                                 .setSmallIcon(R.mipmap.ic_launcherevent)
                                                 .setLargeIcon(bitmap)
                                                 .build();
@@ -157,79 +251,15 @@ public class ForegroundService extends Service {
                                         if (notificationManager != null) {
                                             notificationManager.notify((int) new Date().getTime(), notification);
                                         }
+                                        editor.putInt("date", ngayDuongCuahientai);
+                                        editor.putInt("month", thangDuongCuaHienTai);
+                                        editor.apply();
                                     }
                                 }
                             }
-                            Calendar ngayDuongdienraSk = Calendar.getInstance();
-                            int ngayduongconlaidensk = 0;
-                            ngayHienTai.set(namDuongCuaHienTai, thangDuongCuaHienTai - 1, ngayDuongCuahientai);
-                            for (int i = 0; i < arrayListNgayDUONG.size(); i++) {
-                                String catngayduong[] = arrayListNgayDUONG.get(i).getNgayDuong().split("\\/");
-                                ngayDuongdienraSk.set(namDuongCuaHienTai, Integer.parseInt(catngayduong[1]) - 1, Integer.parseInt(catngayduong[0]));
-                                ngayduongconlaidensk = (int) ((ngayDuongdienraSk.getTimeInMillis() - ngayHienTai.getTimeInMillis()) / (1000 * 60 * 60 * 24));
-                                switch (ngayDuongdienraSk.get(Calendar.DAY_OF_WEEK)) {
-                                    case 1:
-                                        thuTRongTuan = "Chủ nhật";
-                                        break;
-                                    case 2:
-                                        thuTRongTuan = "Thứ hai";
-                                        break;
-                                    case 3:
-                                        thuTRongTuan = "Thứ ba";
-                                        break;
-                                    case 4:
-                                        thuTRongTuan = "Thứ tư";
-                                        break;
-                                    case 5:
-                                        thuTRongTuan = "Thứ năm";
-                                        break;
-                                    case 6:
-                                        thuTRongTuan = "Thứ sáu";
-                                        break;
-                                    case 7:
-                                        thuTRongTuan = "Thứ bảy";
-                                        break;
-                                }
-                                if (ngayduongconlaidensk == 7) {
-                                    Bitmap bitmap = BitmapFactory.decodeResource(ForegroundService.this.getResources(), R.mipmap.ic_launcherevent);
-                                    Notification notification = new NotificationCompat.Builder(ForegroundService.this, NotificationChannelCreate.CHANNEL_ID)
-                                            .setContentTitle("Nhắc nhở")
-                                            .setContentText("Còn 7 ngày nữa đến " + arrayListNgayDUONG.get(i).tenSk + " vào: " + thuTRongTuan)
-                                            .setSmallIcon(R.mipmap.ic_launcherevent)
-                                            .setLargeIcon(bitmap)
-                                            .build();
-                                    NotificationManager notificationManager = (NotificationManager) ForegroundService.this.getSystemService(Context.NOTIFICATION_SERVICE);
-                                    if (notificationManager != null) {
-                                        notificationManager.notify((int) new Date().getTime(), notification);
-                                    }
-                                } else if (ngayduongconlaidensk == 3) {
-                                    Bitmap bitmap = BitmapFactory.decodeResource(ForegroundService.this.getResources(), R.mipmap.ic_launcherevent);
-                                    Notification notification = new NotificationCompat.Builder(ForegroundService.this, NotificationChannelCreate.CHANNEL_ID)
-                                            .setContentTitle("Nhắc nhở")
-                                            .setContentText("Còn 3 ngày nữa đến " + arrayListNgayDUONG.get(i).tenSk + " vào : " + thuTRongTuan.toString())
-                                            .setSmallIcon(R.mipmap.ic_launcherevent)
-                                            .setLargeIcon(bitmap)
-                                            .build();
-                                    NotificationManager notificationManager = (NotificationManager) ForegroundService.this.getSystemService(Context.NOTIFICATION_SERVICE);
-                                    if (notificationManager != null) {
-                                        notificationManager.notify((int) new Date().getTime(), notification);
-                                    }
-                                } else if (ngayduongconlaidensk == 0) {
-                                    Bitmap bitmap = BitmapFactory.decodeResource(ForegroundService.this.getResources(), R.mipmap.ic_launcherevent);
-                                    Notification notification = new NotificationCompat.Builder(ForegroundService.this, NotificationChannelCreate.CHANNEL_ID)
-                                            .setContentTitle("Nhắc nhở")
-                                            .setContentText("Hôm nay là " + arrayListNgayDUONG.get(i).tenSk)
-                                            .setSmallIcon(R.mipmap.ic_launcherevent)
-                                            .setLargeIcon(bitmap)
-                                            .build();
-                                    NotificationManager notificationManager = (NotificationManager) ForegroundService.this.getSystemService(Context.NOTIFICATION_SERVICE);
-                                    if (notificationManager != null) {
-                                        notificationManager.notify((int) new Date().getTime(), notification);
-                                    }
-                                }
-                            }
+
                             try {
-                                Thread.sleep(21600000);
+                                Thread.sleep(1800000);
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                                 Bitmap bitmap = BitmapFactory.decodeResource(ForegroundService.this.getResources(), R.mipmap.ic_launcherevent);
@@ -266,7 +296,7 @@ public class ForegroundService extends Service {
 
     @Override
     public void onDestroy() {
-        Intent serviceIntent= new Intent(getApplicationContext(), ForegroundService.class);
+        Intent serviceIntent = new Intent(getApplicationContext(), ForegroundService.class);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             startForegroundService(serviceIntent);
         }
@@ -339,7 +369,7 @@ public class ForegroundService extends Service {
             }
 
 
-           if (ngayduongconlaidensk == 3) {
+            if (ngayduongconlaidensk == 3) {
                 Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), R.mipmap.ic_launcherevent);
                 Notification notification = new NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_IDDuong)
                         .setContentTitle("Nhắc nhở")
@@ -364,18 +394,18 @@ public class ForegroundService extends Service {
                     notificationManager.notify(getNotificationid(), notification);
                 }
             } else if (ngayduongconlaidensk == 0) {
-               Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), R.mipmap.ic_launcherevent);
-               Notification notification = new NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_IDDuong)
-                       .setContentTitle("Nhắc nhở")
-                       .setContentText("Hôm nay là " + arrayListNgayDUONG.get(i).tenSk)
-                       .setSmallIcon(R.mipmap.ic_launcherevent)
-                       .setLargeIcon(bitmap)
-                       .build();
-               NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-               if (notificationManager != null) {
-                   notificationManager.notify(getNotificationid(), notification);
-               }
-           }
+                Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), R.mipmap.ic_launcherevent);
+                Notification notification = new NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_IDDuong)
+                        .setContentTitle("Nhắc nhở")
+                        .setContentText("Hôm nay là " + arrayListNgayDUONG.get(i).tenSk)
+                        .setSmallIcon(R.mipmap.ic_launcherevent)
+                        .setLargeIcon(bitmap)
+                        .build();
+                NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+                if (notificationManager != null) {
+                    notificationManager.notify(getNotificationid(), notification);
+                }
+            }
         }
     }
 
@@ -418,7 +448,7 @@ public class ForegroundService extends Service {
             }
 
 
-           if (ngayconlaidensk == 3) {
+            if (ngayconlaidensk == 3) {
                 Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), R.mipmap.ic_launcherevent);
                 Notification notification = new NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_IDAm)
                         .setContentTitle("Nhắc nhở")
@@ -442,19 +472,19 @@ public class ForegroundService extends Service {
                 if (notificationManager != null) {
                     notificationManager.notify(getNotificationid(), notification);
                 }
-            }else if (ngayconlaidensk == 0) {
-               Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), R.mipmap.ic_launcherevent);
-               Notification notification = new NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_IDAm)
-                       .setContentTitle("Nhắc nhở")
-                       .setContentText("Hôm nay là " + arrayListNgayAM.get(i).tenSk)
-                       .setSmallIcon(R.mipmap.ic_launcherevent)
-                       .setLargeIcon(bitmap)
-                       .build();
-               NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-               if (notificationManager != null) {
-                   notificationManager.notify(getNotificationid(), notification);
-               }
-           }
+            } else if (ngayconlaidensk == 0) {
+                Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), R.mipmap.ic_launcherevent);
+                Notification notification = new NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_IDAm)
+                        .setContentTitle("Nhắc nhở")
+                        .setContentText("Hôm nay là " + arrayListNgayAM.get(i).tenSk)
+                        .setSmallIcon(R.mipmap.ic_launcherevent)
+                        .setLargeIcon(bitmap)
+                        .build();
+                NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+                if (notificationManager != null) {
+                    notificationManager.notify(getNotificationid(), notification);
+                }
+            }
         }
     }
 }
