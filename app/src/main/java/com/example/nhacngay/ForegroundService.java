@@ -29,6 +29,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 
 public class ForegroundService extends Service {
     String thuTRongTuan;
@@ -49,10 +50,9 @@ public class ForegroundService extends Service {
                         while (true) {
                             Log.e("Services", "service is running...");
 
-                           
+
                             SharedPreferences sharedPreferences = getSharedPreferences("data", MODE_PRIVATE);
                             Integer date = sharedPreferences.getInt("date", 0);
-                            Integer month = sharedPreferences.getInt("month", 0);
 
 
                             database = new Database(ForegroundService.this, "QuanLySK.sqlite", null, 1);
@@ -78,8 +78,7 @@ public class ForegroundService extends Service {
                             ngayDuongCuahientai = ngayHienTai.get(Calendar.DATE);
                             thangDuongCuaHienTai = ngayHienTai.get(Calendar.MONTH) + 1;
                             namDuongCuaHienTai = ngayHienTai.get(Calendar.YEAR);
-
-                            if (date != ngayDuongCuahientai && month != thangDuongCuaHienTai) {
+                            if (date != ngayDuongCuahientai && ngayHienTai.get(Calendar.HOUR_OF_DAY) >= 9) {
                                 SharedPreferences.Editor editor = getSharedPreferences("data", Context.MODE_PRIVATE).edit();
 
                                 ChineseCalendar ngayam = null;
@@ -98,14 +97,17 @@ public class ForegroundService extends Service {
 
                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                                     ChineseCalendar ngayAmdienraSk = new ChineseCalendar();
-                                    int ngayconlaidensk = 0;
+                                    long ngayconlaidensk = 0;
 
                                     ChineseCalendar ngayamLichHienTai = new ChineseCalendar(ngayHienTai.getTime());
                                     for (int i = 0; i < arrayListNgayAM.size(); i++) {
                                         String catngayam[] = arrayListNgayAM.get(i).getNgayAm().split("\\/");
-                                        ngayAmdienraSk.set(namAmCuaHienTai, Integer.parseInt(catngayam[1]) - 1, Integer.parseInt(catngayam[0]));
-                                        ngayconlaidensk = (int) ((ngayAmdienraSk.getTimeInMillis() - ngayamLichHienTai.getTimeInMillis()) / (1000 * 60 * 60 * 24));
 
+                                        ngayAmdienraSk.set(namAmCuaHienTai, Integer.parseInt(catngayam[1]) - 1, Integer.parseInt(catngayam[0]));
+                                        ngayconlaidensk = (long) (float) ((ngayAmdienraSk.getTimeInMillis() - ngayamLichHienTai.getTimeInMillis()) / (1000 * 60 * 60 * 24));
+                                        if (Integer.parseInt(catngayam[0]) < ngayAmCuaHienTai && Integer.parseInt(catngayam[1]) - 1 <= thangAmCuaHienTai) {
+                                            ngayconlaidensk = -1;
+                                        }
                                         switch (ngayAmdienraSk.get(Calendar.DAY_OF_WEEK)) {
                                             case 1:
                                                 thuTRongTuan = "Chủ nhật";
@@ -144,7 +146,6 @@ public class ForegroundService extends Service {
                                                 notificationManager.notify((int) new Date().getTime(), notification);
                                             }
                                             editor.putInt("date", ngayDuongCuahientai);
-                                            editor.putInt("month", thangDuongCuaHienTai);
                                             editor.apply();
                                         } else if (ngayconlaidensk == 3) {
                                             Bitmap bitmap = BitmapFactory.decodeResource(ForegroundService.this.getResources(), R.mipmap.ic_launcherevent);
@@ -159,7 +160,6 @@ public class ForegroundService extends Service {
                                                 notificationManager.notify((int) new Date().getTime(), notification);
                                             }
                                             editor.putInt("date", ngayDuongCuahientai);
-                                            editor.putInt("month", thangDuongCuaHienTai);
                                             editor.apply();
                                         } else if (ngayconlaidensk == 0) {
                                             Bitmap bitmap = BitmapFactory.decodeResource(ForegroundService.this.getResources(), R.mipmap.ic_launcherevent);
@@ -174,18 +174,20 @@ public class ForegroundService extends Service {
                                                 notificationManager.notify((int) new Date().getTime(), notification);
                                             }
                                             editor.putInt("date", ngayDuongCuahientai);
-                                            editor.putInt("month", thangDuongCuaHienTai);
                                             editor.apply();
                                         }
                                     }
                                 }
                                 Calendar ngayDuongdienraSk = Calendar.getInstance();
-                                int ngayduongconlaidensk = 0;
+                                long ngayduongconlaidensk = 0;
                                 ngayHienTai.set(namDuongCuaHienTai, thangDuongCuaHienTai - 1, ngayDuongCuahientai);
                                 for (int i = 0; i < arrayListNgayDUONG.size(); i++) {
                                     String catngayduong[] = arrayListNgayDUONG.get(i).getNgayDuong().split("\\/");
                                     ngayDuongdienraSk.set(namDuongCuaHienTai, Integer.parseInt(catngayduong[1]) - 1, Integer.parseInt(catngayduong[0]));
-                                    ngayduongconlaidensk = (int) ((ngayDuongdienraSk.getTimeInMillis() - ngayHienTai.getTimeInMillis()) / (1000 * 60 * 60 * 24));
+                                    ngayduongconlaidensk = (long) ((float) (ngayDuongdienraSk.getTimeInMillis() - ngayHienTai.getTimeInMillis()) / (1000 * 60 * 60 * 24));
+                                    if (Integer.parseInt(catngayduong[0]) < ngayDuongCuahientai && Integer.parseInt(catngayduong[1]) - 1 <= thangDuongCuaHienTai - 1) {
+                                        ngayduongconlaidensk = -1;
+                                    }
                                     switch (ngayDuongdienraSk.get(Calendar.DAY_OF_WEEK)) {
                                         case 1:
                                             thuTRongTuan = "Chủ nhật";
@@ -222,7 +224,6 @@ public class ForegroundService extends Service {
                                             notificationManager.notify((int) new Date().getTime(), notification);
                                         }
                                         editor.putInt("date", ngayDuongCuahientai);
-                                        editor.putInt("month", thangDuongCuaHienTai);
                                         editor.apply();
                                     } else if (ngayduongconlaidensk == 3) {
                                         Bitmap bitmap = BitmapFactory.decodeResource(ForegroundService.this.getResources(), R.mipmap.ic_launcherevent);
@@ -237,7 +238,6 @@ public class ForegroundService extends Service {
                                             notificationManager.notify((int) new Date().getTime(), notification);
                                         }
                                         editor.putInt("date", ngayDuongCuahientai);
-                                        editor.putInt("month", thangDuongCuaHienTai);
                                         editor.apply();
                                     } else if (ngayduongconlaidensk == 0) {
                                         Bitmap bitmap = BitmapFactory.decodeResource(ForegroundService.this.getResources(), R.mipmap.ic_launcherevent);
@@ -252,14 +252,13 @@ public class ForegroundService extends Service {
                                             notificationManager.notify((int) new Date().getTime(), notification);
                                         }
                                         editor.putInt("date", ngayDuongCuahientai);
-                                        editor.putInt("month", thangDuongCuaHienTai);
                                         editor.apply();
                                     }
                                 }
                             }
 
                             try {
-                                Thread.sleep(1800000);
+                                Thread.sleep(1500);
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                                 Bitmap bitmap = BitmapFactory.decodeResource(ForegroundService.this.getResources(), R.mipmap.ic_launcherevent);
