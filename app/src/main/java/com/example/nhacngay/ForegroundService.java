@@ -258,7 +258,7 @@ public class ForegroundService extends Service {
                             }
 
                             try {
-                                Thread.sleep(1500);
+                                Thread.sleep(900000);
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                                 Bitmap bitmap = BitmapFactory.decodeResource(ForegroundService.this.getResources(), R.mipmap.ic_launcherevent);
