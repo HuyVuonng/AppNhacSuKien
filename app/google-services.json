@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "347262153348",
+    "firebase_url": "https://remind-9943b-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "remind-9943b",
+    "storage_bucket": "remind-9943b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:347262153348:android:66fc4ffc498ebbcf1608d1",
+        "android_client_info": {
+          "package_name": "com.example.nhacngay"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "347262153348-5o6537qpg2tamf5idd2lc33j46oqosr6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.nhacngay",
+            "certificate_hash": "201d268fb0fcad3da1a50c2d8a91de2c6e785396"
+          }
+        },
+        {
+          "client_id": "347262153348-bm8i11f03npv622tvq6jdo1367iaq7rg.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAs1shaGyc_gqARfJPpU67eL0N7AC7fUoY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "347262153348-bm8i11f03npv622tvq6jdo1367iaq7rg.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

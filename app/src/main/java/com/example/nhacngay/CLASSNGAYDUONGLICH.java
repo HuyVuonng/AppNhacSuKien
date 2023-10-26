@@ -2,7 +2,10 @@ package com.example.nhacngay;
 
 public class CLASSNGAYDUONGLICH {
     String tenSk,ngayDuong;
-    int maNgayDuong;
+    int maNgayDuong,madb;
+
+    public CLASSNGAYDUONGLICH() {
+    }
 
     public CLASSNGAYDUONGLICH(String tenSk, String ngayDuong) {
         this.tenSk = tenSk;
@@ -13,6 +16,21 @@ public class CLASSNGAYDUONGLICH {
         this.tenSk = tenSk;
         this.ngayDuong = ngayDuong;
         this.maNgayDuong = maNgayDuong;
+    }
+
+    public CLASSNGAYDUONGLICH(String tenSk, String ngayDuong, int maNgayDuong, int madb) {
+        this.tenSk = tenSk;
+        this.ngayDuong = ngayDuong;
+        this.maNgayDuong = maNgayDuong;
+        this.madb = madb;
+    }
+
+    public int getMadb() {
+        return madb;
+    }
+
+    public void setMadb(int madb) {
+        this.madb = madb;
     }
 
     public int getMaNgayDuong() {

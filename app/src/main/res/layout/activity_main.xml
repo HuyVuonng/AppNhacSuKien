@@ -19,21 +19,23 @@
             android:layout_height="wrap_content"
             android:text="Lịch dương"
             android:textSize="20sp"
-            android:textStyle="bold"/>
+            android:textStyle="bold" />
+
         <ListView
             android:id="@+id/lvNgayDuong"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
 
-           />
+            />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Lịch âm"
             android:layout_marginTop="30dp"
+            android:text="Lịch âm"
             android:textSize="20sp"
-            android:textStyle="bold"/>
+            android:textStyle="bold" />
+
         <ListView
             android:id="@+id/lvNgayAm"
             android:layout_width="match_parent"
@@ -54,6 +56,5 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:srcCompat="@android:drawable/ic_input_add" />
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>

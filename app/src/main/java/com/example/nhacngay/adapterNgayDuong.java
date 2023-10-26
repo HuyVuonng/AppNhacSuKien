@@ -1,15 +1,22 @@
 package com.example.nhacngay;
 
+import static android.content.Context.MODE_PRIVATE;
+
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,6 +25,7 @@ public class adapterNgayDuong extends BaseAdapter {
     private MainActivity context;
     private int layout;
     private List<CLASSNGAYDUONGLICH> NgayDuongLichList;
+    private static DatabaseReference mDatabase;
     Database database;
     Intent intent;
 
@@ -68,10 +76,17 @@ public class adapterNgayDuong extends BaseAdapter {
         CLASSNGAYDUONGLICH ngayDuong= NgayDuongLichList.get(i);
         viewHolder.tensk.setText(ngayDuong.getTenSk());
         viewHolder.ngay.setText("Ngày: "+ngayDuong.getNgayDuong());
+        Log.e("onClick: ", String.valueOf(ngayDuong.getMadb()));
         viewHolder.btnxoask.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
+                String uid = sharedPreferences.getString("uid", "");
                 database.QuerryData("Delete from NgayDuong Where maNgayDuong="+ngayDuong.getMaNgayDuong());
+                Log.e("onClick: ", String.valueOf(ngayDuong.getMadb()));
+                mDatabase = FirebaseDatabase.getInstance().getReference();
+                mDatabase.child(uid).child("DuongLich").child(String.valueOf(ngayDuong.getMadb())).removeValue();
+
                 intent= new Intent(context,MainActivity.class);
                 context.startActivity(intent);
             }
