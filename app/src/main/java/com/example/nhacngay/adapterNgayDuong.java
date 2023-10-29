@@ -76,14 +76,15 @@ public class adapterNgayDuong extends BaseAdapter {
         CLASSNGAYDUONGLICH ngayDuong= NgayDuongLichList.get(i);
         viewHolder.tensk.setText(ngayDuong.getTenSk());
         viewHolder.ngay.setText("Ngày: "+ngayDuong.getNgayDuong());
-        Log.e("onClick: ", String.valueOf(ngayDuong.getMadb()));
         viewHolder.btnxoask.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
+                SharedPreferences sharedPreferences = context.getSharedPreferences("data1", MODE_PRIVATE);
                 String uid = sharedPreferences.getString("uid", "");
                 database.QuerryData("Delete from NgayDuong Where maNgayDuong="+ngayDuong.getMaNgayDuong());
                 Log.e("onClick: ", String.valueOf(ngayDuong.getMadb()));
+                Log.e("onClick1: ", String.valueOf(uid));
+
                 mDatabase = FirebaseDatabase.getInstance().getReference();
                 mDatabase.child(uid).child("DuongLich").child(String.valueOf(ngayDuong.getMadb())).removeValue();
 

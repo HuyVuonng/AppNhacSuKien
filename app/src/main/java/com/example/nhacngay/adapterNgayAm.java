@@ -81,7 +81,7 @@ public class adapterNgayAm extends BaseAdapter {
         viewHolder.btnxoask.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
+                SharedPreferences sharedPreferences = context.getSharedPreferences("data1", MODE_PRIVATE);
                 String uid = sharedPreferences.getString("uid", "");
                 database.QuerryData("Delete from NgayAm Where maNgayAm=" + ngayAm.getMaNgayAm());
                 mDatabase = FirebaseDatabase.getInstance().getReference();

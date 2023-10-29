@@ -122,14 +122,12 @@ public class MainActivity extends AppCompatActivity {
                 .build();
 
         client = GoogleSignIn.getClient(this, options);
-        SharedPreferences sharedPreferences = getSharedPreferences("data", MODE_PRIVATE);
+        SharedPreferences sharedPreferences = getSharedPreferences("data1", MODE_PRIVATE);
         String uid = sharedPreferences.getString("uid", "");
-        if(uid == ""){
+        if (uid == "") {
             Intent i = client.getSignInIntent();
             startActivityForResult(i, 123546789);
-            Log.e("onCreate: ","sfsdfsdfsd" );
         }
-
 
 
 //        FirebaseAuth.getInstance().getCurrentUser().getUid();
@@ -139,7 +137,7 @@ public class MainActivity extends AppCompatActivity {
         add.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (uid != ""){
+                if (uid != "") {
                     Dialog dialog = new Dialog(MainActivity.this);
                     dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
                     dialog.setContentView(R.layout.dialogthemsukien);
@@ -162,6 +160,7 @@ public class MainActivity extends AppCompatActivity {
                     Them.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
+                            Boolean checkNumber = false;
                             String tensk = tenSK.getText().toString().trim();
                             String ngaySk = ngay.getText().toString().trim();
                             String checkngay[] = ngaySk.split("\\/");
@@ -169,6 +168,19 @@ public class MainActivity extends AppCompatActivity {
                                 Toast.makeText(MainActivity.this, "Nhập đầy đủ thông tin", Toast.LENGTH_SHORT).show();
                             } else if (checkngay.length < 2) {
                                 Toast.makeText(MainActivity.this, "Bạn đang nhập sai ngày", Toast.LENGTH_SHORT).show();
+                            }
+                            try {
+                                Integer.parseInt(checkngay[0]);
+                                Integer.parseInt(checkngay[1]);
+                            } catch (Exception e) {
+                                checkNumber = true;
+                            }
+                            if (checkNumber) {
+                                Toast.makeText(MainActivity.this, "Bạn đang nhập sai ngày", Toast.LENGTH_SHORT).show();
+                            } else if (Integer.parseInt(checkngay[0]) < 1 || Integer.parseInt(checkngay[0]) > 31) {
+                                Toast.makeText(MainActivity.this, "Ngày phải >0 và <31", Toast.LENGTH_SHORT).show();
+                            } else if (Integer.parseInt(checkngay[1]) < 0 || Integer.parseInt(checkngay[1]) > 12) {
+                                Toast.makeText(MainActivity.this, "Tháng phải >0 và <13", Toast.LENGTH_SHORT).show();
                             } else if (duonglich.isChecked()) {
                                 int id = (int) (new Date().getTime() / 1000);
                                 database.QuerryData("INSERT INTO NgayDuong VALUES(null,'" + tensk + "','" + ngaySk + "','" + id + "')");
@@ -188,7 +200,7 @@ public class MainActivity extends AppCompatActivity {
                             MainActivity.this.finish();
                         }
                     });
-                }else{
+                } else {
                     AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
                     builder.setTitle("Thông báo");
                     builder.setMessage("Vui lòng đăng nhập tài khoản.");
@@ -208,6 +220,19 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setDataFireBaseToDBLocalDl(String uid) {
+
+
+        mDatabase = FirebaseDatabase.getInstance().getReference();
+        Cursor datangayduong = database.GetData("SELECT * FROM NgayDuong");
+        arrayListNgayDUONG.clear();
+        while (datangayduong.moveToNext()) {
+            String tenSK = datangayduong.getString(1);
+            String Ngay = datangayduong.getString(2);
+            int madb = datangayduong.getInt(3);
+            CLASSNGAYDUONGLICH duonglich = new CLASSNGAYDUONGLICH(tenSK, Ngay, madb, madb);
+            mDatabase.child(uid).child("DuongLich").child(String.valueOf(madb)).setValue(duonglich);
+        }
+
 
         mDatabase = FirebaseDatabase.getInstance().getReference(uid).child("DuongLich");
         mDatabase.addValueEventListener(new ValueEventListener() {
@@ -235,6 +260,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setDataFireBaseToDBLocalAl(String uid) {
+
+        mDatabase = FirebaseDatabase.getInstance().getReference();
+        Cursor datangayam = database.GetData("SELECT * FROM NgayAm");
+        arrayListNgayAM.clear();
+        while (datangayam.moveToNext()) {
+            String tenSK = datangayam.getString(1);
+            String Ngay = datangayam.getString(2);
+            int madb = datangayam.getInt(3);
+            CLASSNGAYAMLICH amlich = new CLASSNGAYAMLICH(tenSK, Ngay, madb, madb);
+            mDatabase.child(uid).child("AmLich").child(String.valueOf(madb)).setValue(amlich);
+        }
+
 
         mDatabase = FirebaseDatabase.getInstance().getReference(uid).child("AmLich");
         mDatabase.addValueEventListener(new ValueEventListener() {
@@ -304,9 +341,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        Log.e("onActivityResult: ", String.valueOf(requestCode));
 
         if (requestCode == 123546789) {
+            Log.e("onActivityResulthere: ", String.valueOf(requestCode));
 
             Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
             try {
@@ -317,13 +354,13 @@ public class MainActivity extends AppCompatActivity {
                             @Override
                             public void onComplete(@NonNull Task<AuthResult> task) {
                                 if (task.isSuccessful()) {
-                                    SharedPreferences.Editor editor = getSharedPreferences("data", MODE_PRIVATE).edit();
+                                    SharedPreferences.Editor editor = getSharedPreferences("data1", MODE_PRIVATE).edit();
                                     editor.putString("email", FirebaseAuth.getInstance().getCurrentUser().getEmail());
                                     editor.putBoolean("isLogin", true);
-                                    editor.putString("uid",FirebaseAuth.getInstance().getCurrentUser().getUid() );
+                                    editor.putString("uid", FirebaseAuth.getInstance().getCurrentUser().getUid());
                                     editor.putString("type", "google");
                                     editor.apply();
-                                    startActivity(new Intent(MainActivity.this,MainActivity.class));
+                                    startActivity(new Intent(MainActivity.this, MainActivity.class));
                                     finish();
                                 } else {
                                     Toast.makeText(MainActivity.this, task.getException().getMessage(), Toast.LENGTH_SHORT).show();
@@ -336,9 +373,10 @@ public class MainActivity extends AppCompatActivity {
 
         }
     }
+
     protected void onStart() {
         super.onStart();
-        SharedPreferences sharedPreferences = getSharedPreferences("data", MODE_PRIVATE);
+        SharedPreferences sharedPreferences = getSharedPreferences("data1", MODE_PRIVATE);
         boolean isLogin = sharedPreferences.getBoolean("isLogin", false);
         if (isLogin) {
             FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
@@ -346,12 +384,12 @@ public class MainActivity extends AppCompatActivity {
                 gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).requestEmail().build();
                 gsc = GoogleSignIn.getClient(this, gso);
 
-                SharedPreferences editor1 = MainActivity.this.getSharedPreferences("data", MODE_PRIVATE);
+                SharedPreferences editor1 = MainActivity.this.getSharedPreferences("data1", MODE_PRIVATE);
                 editor1.edit().clear().apply();
 
                 GoogleSignInAccount acct = GoogleSignIn.getLastSignedInAccount(this);
                 if (acct != null) {
-                    SharedPreferences.Editor editor = getSharedPreferences("data", MODE_PRIVATE).edit();
+                    SharedPreferences.Editor editor = getSharedPreferences("data1", MODE_PRIVATE).edit();
                     editor.putString("email", FirebaseAuth.getInstance().getCurrentUser().getEmail());
                     editor.putBoolean("isLogin", true);
                     editor.putString("uid", FirebaseAuth.getInstance().getCurrentUser().getUid());

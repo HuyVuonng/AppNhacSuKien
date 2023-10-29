@@ -38,7 +38,7 @@ public class ForegroundService extends Service {
     int ngayDuongCuahientai, thangDuongCuaHienTai, namDuongCuaHienTai, ngayAmCuaHienTai, thangAmCuaHienTai, namAmCuaHienTai;
     ArrayList<CLASSNGAYAMLICH> arrayListNgayAM;
     ArrayList<CLASSNGAYDUONGLICH> arrayListNgayDUONG;
-    final String NOTIFICATION_CHANNEL_ID = "com.example.nhacngay";
+    final String NOTIFICATION_CHANNEL_ID = "com.example.remind";
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
@@ -258,7 +258,7 @@ public class ForegroundService extends Service {
                             }
 
                             try {
-                                Thread.sleep(900000);
+                                Thread.sleep(300000);
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                                 Bitmap bitmap = BitmapFactory.decodeResource(ForegroundService.this.getResources(), R.mipmap.ic_launcherevent);
