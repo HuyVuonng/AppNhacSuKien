@@ -88,8 +88,8 @@ public class adapterNgayDuong extends BaseAdapter {
                 mDatabase = FirebaseDatabase.getInstance().getReference();
                 mDatabase.child(uid).child("DuongLich").child(String.valueOf(ngayDuong.getMadb())).removeValue();
 
-                intent= new Intent(context,MainActivity.class);
-                context.startActivity(intent);
+//                intent= new Intent(context,MainActivity.class);
+//                context.startActivity(intent);
             }
         });
 

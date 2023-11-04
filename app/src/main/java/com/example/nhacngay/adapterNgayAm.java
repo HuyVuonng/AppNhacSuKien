@@ -86,8 +86,8 @@ public class adapterNgayAm extends BaseAdapter {
                 database.QuerryData("Delete from NgayAm Where maNgayAm=" + ngayAm.getMaNgayAm());
                 mDatabase = FirebaseDatabase.getInstance().getReference();
                 mDatabase.child(uid).child("AmLich").child(String.valueOf(ngayAm.getMadb())).removeValue();
-                intent = new Intent(context, MainActivity.class);
-                context.startActivity(intent);
+//                intent = new Intent(context, MainActivity.class);
+//                context.startActivity(intent);
             }
         });
         return view;
